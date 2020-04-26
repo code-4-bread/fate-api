@@ -7,7 +7,11 @@ const mongoURI = process.env.MONGO_URI;
 
 const mongoManager = {
   async connect() {
-    await mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true });
+    await mongoose.connect(mongoURI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      useFindAndModify: false,
+    });
   },
 };
 
