@@ -1,6 +1,8 @@
 import express from 'express';
+import { ObjectId } from 'mongoose';
 import statusCodes from '../utils/statusCodes';
 import Session from '../models/Session';
+import serverEvents from '../eventEmitter';
 
 const router = express.Router();
 
@@ -75,13 +77,15 @@ router.post('/:id', async (req, res) => {
       isOwner: false,
     };
 
-    const session = await Session.updateOne({
+    const session = await Session.findOneAndUpdate({
       _id: id,
     }, {
       $push: {
         participants: newParticipant,
       },
     });
+
+    serverEvents.emit('newJoin', session.id);
 
     return res.status(statusCodes.OK).send(
       {

@@ -1,6 +1,12 @@
 import socketIO from 'socket.io';
 import Session from '../models/Session';
 
+const getSessionDetail = (sessionId) => (
+  Session.findOne({
+    _id: sessionId,
+  })
+);
+
 export default ((server, events) => {
   const webSocket = socketIO(server, {
     origins: process.env.ORIGIN,
@@ -12,9 +18,9 @@ export default ((server, events) => {
         sessionId,
       } = data;
 
-      const result = await Session.findOne({
-        _id: sessionId,
-      });
+      socket.join(sessionId);
+
+      const result = await getSessionDetail(sessionId);
 
       socket.emit('sessionDetail', result);
     });
@@ -23,8 +29,10 @@ export default ((server, events) => {
       console.log(data);
     });
 
-    // events.on('update', () => {
-    //   socket.broadcast.emit('Hello');
-    // });
+    events.on('newJoin', async (sessionId) => {
+      const result = await getSessionDetail(sessionId);
+
+      socket.to(sessionId).emit('sessionDetail', result);
+    });
   });
 });

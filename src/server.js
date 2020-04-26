@@ -6,7 +6,7 @@ import routes from './routes';
 import mongoManager from './mongoManager';
 import logger from './logger';
 import webSocket from './webSocketServer';
-import events from 'events';
+import serverEvents from './eventEmitter';
 
 dotenv.config();
 
@@ -36,4 +36,4 @@ const webServer = server.listen(port, () => {
   logger.info(`Fate API Server is running on port ${port}`);
 });
 
-webSocket(webServer, events);
+webSocket(webServer, serverEvents);
