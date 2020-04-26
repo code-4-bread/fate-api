@@ -13,11 +13,7 @@ export default ((server, events) => {
   });
 
   webSocket.on('connection', (socket) => {
-    socket.on('getSessionDetail', async (data) => {
-      const {
-        sessionId,
-      } = data;
-
+    socket.on('getSessionDetail', async (sessionId) => {
       socket.join(sessionId);
 
       const result = await getSessionDetail(sessionId);
@@ -27,6 +23,10 @@ export default ((server, events) => {
 
     socket.on('voteUpdate', (data) => {
       console.log(data);
+    });
+
+    socket.on('unsubscribe', (sessionId) => {
+      socket.leave(sessionId);
     });
 
     events.on('newJoin', async (sessionId) => {
