@@ -9,7 +9,7 @@ router.get('/', async (req, res) => {
   try {
     const sessions = await Session.find({}, {
       id: 1,
-      name: 1,
+      title: 1,
     });
 
     return res.status(statusCodes.OK).send({
