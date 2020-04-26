@@ -44,6 +44,7 @@ router.post('/', async (req, res) => {
       title,
       sessionOwnerId,
       participants,
+      state: 'pending',
     });
 
     return res.status(statusCodes.OK).send(
@@ -69,29 +70,72 @@ router.post('/:id', async (req, res) => {
     const {
       userId,
       userName,
+      action,
     } = req.body;
 
-    const newParticipant = {
-      name: userName,
-      userId,
-      isOwner: false,
-    };
+    if (action === 'newJoin') {
+      const existSession = await Session.findOne({
+        _id: id,
+      });
 
-    const session = await Session.findOneAndUpdate({
-      _id: id,
-    }, {
-      $push: {
-        participants: newParticipant,
-      },
+      if (existSession.state !== 'pending') {
+        return res.status(statusCodes.BAD_REQUEST).send(
+          {
+            message: `Section has already ${existSession.state}`,
+          },
+        );
+      }
+
+      const newParticipant = {
+        name: userName,
+        userId,
+        isOwner: false,
+      };
+
+      const session = await Session.findOneAndUpdate({
+        _id: id,
+      }, {
+        $push: {
+          participants: newParticipant,
+        },
+      });
+
+      serverEvents.emit('newJoin', session.id);
+
+      return res.status(statusCodes.OK).send(
+        {
+          id: session.id,
+        },
+      );
+    }
+
+    if (action === 'sessionStart') {
+      await Session.findOneAndUpdate({
+        _id: id,
+      }, {
+        $set: {
+          state: 'started',
+        },
+      });
+
+      return res.status(statusCodes.OK).send();
+    }
+
+    if (action === 'sessionEnd') {
+      await Session.findOneAndUpdate({
+        _id: id,
+      }, {
+        $set: {
+          state: 'ended',
+        },
+      });
+
+      return res.status(statusCodes.OK).send();
+    }
+
+    return res.status(statusCodes.BAD_REQUEST).send({
+      message: 'invalid action',
     });
-
-    serverEvents.emit('newJoin', session.id);
-
-    return res.status(statusCodes.OK).send(
-      {
-        id: session.id,
-      },
-    );
   } catch (e) {
     return res.status(statusCodes.INTERNAL_SERVER_ERROR).send(
       {
