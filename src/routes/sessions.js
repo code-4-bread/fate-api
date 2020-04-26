@@ -1,5 +1,4 @@
 import express from 'express';
-import { ObjectId } from 'mongoose';
 import statusCodes from '../utils/statusCodes';
 import Session from '../models/Session';
 import serverEvents from '../eventEmitter';
