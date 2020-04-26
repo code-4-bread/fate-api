@@ -7,6 +7,27 @@ const getSessionDetail = (sessionId) => (
   })
 );
 
+const updateVote = (data) => {
+  const {
+    sessionId,
+    userId,
+    vote,
+  } = data;
+
+  const voteObj = {
+    voter: userId,
+    votePoint: vote,
+  };
+
+  return Session.findByIdAndUpdate(sessionId, {
+    $push: {
+      votes: voteObj,
+    },
+  }, {
+    lean: true,
+  });
+};
+
 export default ((server, events) => {
   const webSocket = socketIO(server, {
     origins: process.env.ORIGIN,
@@ -21,15 +42,19 @@ export default ((server, events) => {
       socket.emit('sessionDetail', result);
     });
 
-    socket.on('voteUpdate', (data) => {
-      console.log(data);
+    socket.on('setVote', async (data) => {
+      await updateVote(data);
+
+      const result = await getSessionDetail(data.sessionId);
+
+      socket.to(data.sessionId).emit('sessionDetail', result);
     });
 
     socket.on('unsubscribe', (sessionId) => {
       socket.leave(sessionId);
     });
 
-    events.on('newJoin', async (sessionId) => {
+    events.on('broadcast', async (sessionId) => {
       const result = await getSessionDetail(sessionId);
 
       socket.to(sessionId).emit('sessionDetail', result);

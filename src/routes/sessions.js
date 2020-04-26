@@ -91,7 +91,7 @@ router.post('/:id', async (req, res) => {
         isOwner: false,
       };
 
-      const session = await Session.findOneAndUpdate({
+      await Session.updateOne({
         _id: id,
       }, {
         $push: {
@@ -99,23 +99,40 @@ router.post('/:id', async (req, res) => {
         },
       });
 
-      serverEvents.emit('newJoin', session.id);
+      serverEvents.emit('broadcast', id);
 
       return res.status(statusCodes.OK).send(
         {
-          id: session.id,
+          id,
         },
       );
     }
 
-    if (action === 'sessionStart') {
+    if (action === 'sessionRestart') {
       await Session.findOneAndUpdate({
         _id: id,
       }, {
         $set: {
-          state: 'started',
+          state: 'pending',
+          votes: [],
         },
       });
+
+      serverEvents.emit('broadcast', id);
+
+      return res.status(statusCodes.OK).send();
+    }
+
+    if (action === 'sessionCalculate') {
+      await Session.findOneAndUpdate({
+        _id: id,
+      }, {
+        $set: {
+          state: 'calculated',
+        },
+      });
+
+      serverEvents.emit('broadcast', id);
 
       return res.status(statusCodes.OK).send();
     }
@@ -128,6 +145,8 @@ router.post('/:id', async (req, res) => {
           state: 'ended',
         },
       });
+
+      serverEvents.emit('broadcast', id);
 
       return res.status(statusCodes.OK).send();
     }
