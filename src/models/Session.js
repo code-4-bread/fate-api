@@ -16,6 +16,7 @@ const SessionSchema = new Schema({
     voter: String,
     votePoint: Number,
   }],
+  state: String,
   notes: [String],
 });
 
