@@ -93,5 +93,4 @@ modules.xml
 .env
 build
 node_modules
-Dockerfile
 logs
