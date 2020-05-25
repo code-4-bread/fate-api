@@ -29,9 +29,7 @@ const updateVote = (data) => {
 };
 
 export default ((server, events) => {
-  const webSocket = socketIO(server, {
-    origins: process.env.ORIGIN,
-  });
+  const webSocket = socketIO(server);
 
   webSocket.on('connection', (socket) => {
     socket.on('getSessionDetail', async (sessionId) => {
